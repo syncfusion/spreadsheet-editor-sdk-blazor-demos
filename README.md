@@ -1,6 +1,6 @@
 # Syncfusion® Blazor Spreadsheet Editor SDK Demos
-This repository contains the demos of Syncfusion® Blazor [**Spreadsheet**](https://www.syncfusion.com/spreadsheet-editor-sdk/blazor-spreadsheet-editor) Component samples.
-The following topics can help you to use the Syncfusion Blazor Spreadsheet Component and run this application in your local.
+This repository contains the demos of Syncfusion® Blazor [**Spreadsheet**](https://www.syncfusion.com/spreadsheet-editor-sdk/blazor-spreadsheet-editor) component samples.
+The following topics can help you to use the Syncfusion Blazor Spreadsheet component and run this application in your local.
 * [Requirements to run the demo](#requirements-to-run-the-demo)
 * [How to run the demo](#how-to-run-the-demo)
 * [Spreadsheet Component Catalog](#spreadsheet-component-catalog)
@@ -81,7 +81,7 @@ To get started with the Spreadsheet component:
 </SfSpreadsheet>
 ```
 ## License
-Syncfusion Blazor Components is available under the Syncfusion Essential Studio program, and can be licensed either under the Syncfusion Community License Program or the Syncfusion commercial license.
+Syncfusion Blazor components is available under the Syncfusion Essential Studio program, and can be licensed either under the Syncfusion Community License Program or the Syncfusion commercial license.
 To be qualified for the Syncfusion Community License Program, you must have gross revenue of less than one (1) million U.S. dollars (USD 1,000,000.00) per year and have less than five (5) developers in your organization, and agree to be bound by Syncfusion's terms and conditions.
 Customers who do not qualify for the community license can contact sales@syncfusion.com for commercial licensing options.
 You may not use this product without first purchasing a Community License or a Commercial License, as well as agreeing to and complying with Syncfusion's license terms and conditions.
