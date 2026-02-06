@@ -1,4 +1,4 @@
-# Syncfusion® Blazor Spreadsheet Editor SDK Demos
+# Syncfusion® Blazor Spreadsheet Editor SDK Demos 
 This repository contains the demos of Syncfusion® Blazor [**Spreadsheet**](https://www.syncfusion.com/spreadsheet-editor-sdk/blazor-spreadsheet-editor) component samples.
 The following topics can help you to use the Syncfusion Blazor Spreadsheet component and run this application in your local.
 * [Requirements to run the demo](#requirements-to-run-the-demo)
