@@ -9,7 +9,7 @@ The following topics can help you to use the Syncfusion Blazor Spreadsheet compo
 ## Requirements to run the demo
 * [System requirements](https://help.syncfusion.com/document-processing/system-requirements)
 * [NET 8 WebAssembly Workload / NET 9 WebAssembly Workload](https://learn.microsoft.com/en-us/aspnet/core/blazor/webassembly-build-tools-and-aot?view=aspnetcore-8.0#net-webassembly-build-tools) (For [Spreadsheet Component](https://help.syncfusion.com/document-processing/excel/spreadsheet/blazor/getting-started))
-* Nodejs Version : [10.24.* or above](https://nodejs.org/download/release/v8.1.0/)
+* Nodejs Version : [10.24.* or above](https://nodejs.org/download/release/v10.24.1/)
 ## How to run the demo
 Clone the repository. This repository contains Blazor Server demos and Blazor WASM demos project and solution files for .NET 8 and .NET 9. This repository has Common, Blazor Server Demos, and Blazor WASM Demos folders.
 * `Blazor-Server-Demos` folder has solution and project files to run Blazor server demos.
@@ -63,14 +63,17 @@ The **Syncfusion® Blazor Spreadsheet** component enables users to create, edit,
 - [Protection](https://document.syncfusion.com/demos/spreadsheet-editor/blazor-server/spreadsheet/protection)
 - [Sorting](https://document.syncfusion.com/demos/spreadsheet-editor/blazor-server/spreadsheet/sorting)
 - [Filtering](https://document.syncfusion.com/demos/spreadsheet-editor/blazor-server/spreadsheet/filtering)
+- [Merge Cells](https://document.syncfusion.com/demos/spreadsheet-editor/blazor-server/spreadsheet/merged-cells)
 - [Cell Formatting](https://document.syncfusion.com/demos/spreadsheet-editor/blazor-server/spreadsheet/cell-formatting)
+- [Number Formatting](https://document.syncfusion.com/demos/spreadsheet-editor/blazor-server/spreadsheet/number-formatting)
+- [Cell Borders](https://document.syncfusion.com/demos/spreadsheet-editor/blazor-server/spreadsheet/cell-borders)
 
 **Documentation:** [Spreadsheet Documentation](https://help.syncfusion.com/document-processing/excel/spreadsheet/blazor/getting-started-webapp)
 > **Note:** Spreadsheet is currently in preview mode.
 ## Getting Started
 ### Spreadsheet
 To get started with the Spreadsheet component:
-1. Install the Syncfusion.Blazor.Spreadsheet NuGet package
+1. Install the [Syncfusion.Blazor.Spreadsheet](https://www.syncfusion.com/spreadsheet-editor-sdk/blazor-spreadsheet-editor?utm_source=nuget) NuGet package
 2. Configure the Spreadsheet in your application
 3. Add the Spreadsheet component to your Blazor page
 ```csharp
