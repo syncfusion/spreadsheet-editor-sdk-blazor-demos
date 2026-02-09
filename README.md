@@ -73,7 +73,7 @@ The **Syncfusion® Blazor Spreadsheet** component enables users to create, edit,
 ## Getting Started
 ### Spreadsheet
 To get started with the Spreadsheet component:
-1. Install the [Syncfusion.Blazor.Spreadsheet](https://www.syncfusion.com/spreadsheet-editor-sdk/blazor-spreadsheet-editor?utm_source=nuget) NuGet package
+1. Install the [Syncfusion.Blazor.Spreadsheet](https://www.nuget.org/packages/Syncfusion.Blazor.Spreadsheet) NuGet package
 2. Configure the Spreadsheet in your application
 3. Add the Spreadsheet component to your Blazor page
 ```csharp
