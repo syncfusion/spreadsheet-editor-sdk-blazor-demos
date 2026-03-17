@@ -1,0 +1,783 @@
+@page "/spreadsheet/smartspreadsheet"
+
+@using Syncfusion.Blazor.Spreadsheet
+@using System;
+@using BlazorDemos.Service
+@inject AzureAIService OpenAIService
+@using System.IO;
+@using Syncfusion.Blazor.Buttons
+@using Syncfusion.Blazor.InteractiveChat
+@using Syncfusion.Blazor.Navigations
+@using Markdig;
+@using System.Reflection
+@using System.Text.RegularExpressions
+
+@using System.Collections.Generic
+@using Syncfusion.XlsIO
+
+@*Hidden:Lines*@
+@inherits SampleBaseComponent;
+@inject Microsoft.AspNetCore.Components.NavigationManager UriHelper
+@*End:Hidden*@
+
+
+
+<ActionDescription>
+    <p>  The <b>Spreadsheet</b> enhanced with AI  that offers an embedded assistant to help you analyze and interact with sheet content using plain‑language prompts. It provides concise summaries, guided prompts, and actionable responses that can be applied directly to the active worksheet.</p>
+    
+    <p><strong> </strong></p>
+    <h4><b>How the UI Works:</b></h4>
+    <p>Clicking the <b>AI Assist</b> floating action button (FAB) loads and analyzes the current sheet and opens a right‑side assistant panel with a summarized overview of key observations. Enter a prompt or choose a suggestion — responses are rendered as rich HTML and any accepted cell updates or formats are applied to the active worksheet. Prompt suggestions are provided to help you get started.</p>
+    
+    <p><strong> </strong></p>
+    <h4><b>Usage:</b></h4>
+    <ul>
+        <li><b>Summarize:</b> Ask for a short overview of the active worksheet to surface trends or anomalies.</li>
+        <li><b>Ask questions:</b> Natural‑language questions to extract specific values, ranges, or computed answers (for example, "Highlight top 5 highest sales in Amount").</li>
+    </ul>
+    
+    <p><strong> </strong></p>
+    <h4><b>Key Capabilities:</b></h4>
+    <ul>
+        <li><b>Automated cell edits and formatting:</b> The assistant can update values, insert formulas, and apply styles (colors, fonts, alignment) programmatically from accepted prompts.</li>
+        <li><b>Prompt suggestions:</b> Built‑in suggestions help you get started and guide common workflows.</li>
+        <li><b>Rich responses:</b> Answers are rendered as formatted HTML in the assistant pane for readability and actionability.</li>
+    </ul>
+   
+    <p><strong> </strong></p>
+    <h4><b>Limitations:</b></h4>
+    <ul>
+        <li><b>Token &amp; size limits:</b> Very large workbooks, extremely long text entries, or very wide ranges may be truncated before sending to the AI service. Results may reflect a summarized subset of the data.</li>
+        <li><b>Safety &amp; validation:</b> Programmatic edits are applied based on the assistant's output; validate important changes before saving or sharing workbooks.</li>
+    </ul>
+
+    <br />
+    <p>
+        Explore our <b>Smart AI demos</b> with limited AI token usage directly in your browser. To dive deeper and try these capabilities locally with your own API key, see the
+        <a href="https://github.com/syncfusion/smart-ai-samples/tree/master/blazor" target="_blank" aria-label="Navigate to the Syncfusion Smart AI Samples GitHub repository"><strong>Syncfusion Smart AI Samples</strong></a> on GitHub.
+    </p>
+</ActionDescription>
+
+<div class="col-lg-12 control-section">
+    <div class="content-wrapper">
+        <div class="row">
+            @if (!_isAssistVisible)
+            {
+                <SfFab id="fab" Target="#Spreadsheet" Position="FabPosition.BottomRight" CssClass="fab-hover" IconCss="e-icons e-assistview-icon" OnClick="OnFullSheetAnalysisAsync">
+                    <span class="text-container"><span class="textEle">AI Assist</span></span>
+                </SfFab>
+            }
+            <div style="position:relative;">
+                
+                <SfSpreadsheet id="Spreadsheet" @ref=_spreadsheetInstance DataSource="DataSourceBytes">
+                    <SpreadsheetRibbon></SpreadsheetRibbon>
+                </SfSpreadsheet>
+
+                <SfSidebar @ref="_sidebarRef"
+                           @bind-IsOpen="_isAssistVisible"
+                           Position="SidebarPosition.Right"
+                           Type="SidebarType.Over"
+                           Width="35%"
+                           Target="@SidebarTargetSelector">
+                    @if (_isAssistVisible)
+                    {
+                        <SfAIAssistView @ref=_assistView Height="100%" Width="100%" ShowHeader="true"
+                                        CssClass="ai-assist-pane"
+                                        Prompt="Type your prompt for assistance..." PromptSuggestions="@_promptSuggestions" ResponseIconCss="e-icons e-bullet-4" PromptRequested="@OnPromptRequestedAsync">
+                            <ChildContent>
+                                <AssistViews>
+                                    <AssistView Header="AI Assist">
+                                        <BannerTemplate>
+                                            @if (_isLoading)
+                                            {
+                                                <div class="banner-loading banner-loading-large">
+                                                    <div class="spinner" aria-hidden="true"></div>
+                                                    <div class="banner-loading-body">
+                                                        <div class="simmer" aria-hidden="true"></div>
+                                                    </div>
+                                                </div>
+                                            }
+                                            <AssistViewToolbar ItemClicked="OnToolbarItemClickedAsync">
+                                                <AssistViewToolbarItem Type="Syncfusion.Blazor.Navigations.ItemType.Spacer"></AssistViewToolbarItem>
+                                                <AssistViewToolbarItem Type="Syncfusion.Blazor.Navigations.ItemType.Button" IconCss="e-icons e-close" Tooltip="Close" />
+                                            </AssistViewToolbar>
+                                        </BannerTemplate>
+                                    </AssistView>
+                                </AssistViews>
+                            </ChildContent>
+                        </SfAIAssistView>
+                    }
+                </SfSidebar>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+@code {
+    #region Constants
+    private const string SidebarTargetSelector = ".maincontent";
+    #endregion
+
+    #region Private Fields
+    private SfSpreadsheet? _spreadsheetInstance;
+    private SfSidebar? _sidebarRef;
+    private SfAIAssistView? _assistView;
+    private bool _isAssistVisible;
+    private bool _isLoading;
+    private string _jsonOutput = string.Empty;
+    private string _usedRange = string.Empty;
+    private readonly string _sidebarTarget = SidebarTargetSelector;
+    
+    private readonly List<string> _promptSuggestions = new()
+    {
+        "Highlight top 5 highest sales in Amount",
+        "Replace Credit Card with Gift Card and highlight",
+        "Bold the header row and apply a light background",
+    };
+
+    /// <summary>
+    /// Gets or sets the Excel file data used as the spreadsheet data source.
+    /// </summary>
+    private byte[] DataSourceBytes { get; set; } = null!;
+    #endregion
+
+    #region Lifecycle Methods
+    /// <summary>
+    /// Component initialization logic (loads initial spreadsheet data).
+    /// </summary>
+    protected override void OnInitialized()
+    {
+        LoadInitialSpreadsheetData();
+    }
+    #endregion
+
+    #region Data Loading Methods
+    /// <summary>
+    /// Loads the initial Excel data from file.
+    /// </summary>
+    private void LoadInitialSpreadsheetData()
+    {
+        @*Server:Block*@
+#if !(WASM)
+        const string filePath = "wwwroot/data/spreadsheet/smartspreadsheet.xlsx";
+        DataSourceBytes = File.ReadAllBytes(filePath);
+#endif
+        @*End:Server*@
+    }
+    #endregion
+
+    #region AI AssistView Event Handlers
+    /// <summary>
+    /// Handles prompt requests from the AI AssistView and processes the response.
+    /// </summary>
+    /// <param name="args">Event arguments containing the prompt text.</param>
+    private async Task OnPromptRequestedAsync(AssistViewPromptRequestedEventArgs args)
+    {
+        await ShowLoadingStateAsync();
+
+        string response = string.Empty;
+        var aiRawValue = await OpenAIService.GetCompletionAsync(args.Prompt + _jsonOutput, false);
+
+        if (!string.IsNullOrEmpty(aiRawValue) && _spreadsheetInstance is not null)
+        {
+            string htmlResponse = string.Empty;
+            // Match cell update objects like "A1": { ... } and capture the cell address in group 'cell'
+            var cellUpdateMatches = Regex.Matches(aiRawValue, "\"(?<cell>[A-Za-z]+[0-9]+)\"\\s*:\\s*\\{[^}]*\\}", 
+                RegexOptions.IgnoreCase | RegexOptions.Singleline);
+
+            if (cellUpdateMatches.Count > 0)
+            {
+                htmlResponse = await ProcessCellUpdatesAsync(cellUpdateMatches);
+            }
+
+            string rendered = Markdown.ToHtml(aiRawValue);
+            if (!string.IsNullOrEmpty(htmlResponse))
+            {
+                rendered += htmlResponse;
+            }
+            response = rendered;
+        }
+
+        await UpdateAssistViewResponseAsync(args, response);
+    }
+
+    /// <summary>
+    /// Handles toolbar item clicks in the AssistView.
+    /// </summary>
+    /// <param name="args">Event arguments containing the clicked item details.</param>
+    private Task OnToolbarItemClickedAsync(AssistViewToolbarItemClickedEventArgs args)
+    {
+        if ((args.Item?.IconCss ?? string.Empty).Contains("e-close", StringComparison.OrdinalIgnoreCase))
+        {
+            _isAssistVisible = false;
+        }
+        return Task.CompletedTask;
+    }
+    #endregion
+
+    #region AI Button Click Event Handlers
+    /// <summary>
+    /// Analyzes the full sheet data and displays an AI-generated summary.
+    /// </summary>
+    private async Task OnFullSheetAnalysisAsync()
+    {
+        ExtractUsedRange();
+
+        if (_spreadsheetInstance is null)
+        {
+            return;
+        }
+
+        var cellData = _spreadsheetInstance.GetData(_usedRange);
+        _jsonOutput = SerializeCellData(cellData);
+
+        string prompt = $"Analyze the full data in this data. {_jsonOutput}";
+
+        await PrepareAssistViewAsync();
+
+        string result = await OpenAIService.GetCompletionAsync(prompt, false);
+        if (!string.IsNullOrEmpty(result))
+        {
+            string response = Markdown.ToHtml(result);
+            await DisplayResponseAsync(response);
+        }
+    }
+
+    #endregion
+
+    #region Helper Methods - Cell Processing
+    /// <summary>
+    /// Processes cell updates from AI response matches.
+    /// </summary>
+    /// <param name="cellUpdateMatches">Regex matches containing cell update information.</param>
+    /// <returns>HTML response string with update notes.</returns>
+    private async Task<string> ProcessCellUpdatesAsync(MatchCollection cellUpdateMatches)
+    {
+        var htmlResponse = string.Empty;
+
+        foreach (Match cellMatch in cellUpdateMatches)
+        {
+            var cellAddress = cellMatch.Groups["cell"].Value;
+            var cellPayload = cellMatch.Value;
+
+            string? newCellValue = ExtractCellValue(cellPayload);
+
+            if (!string.IsNullOrEmpty(newCellValue))
+            {
+               string sheetName =  _spreadsheetInstance!.GetActiveWorksheet().Name;
+                await _spreadsheetInstance!.UpdateCellAsync($"{sheetName}!{cellAddress}", newCellValue);
+                htmlResponse += $"<div class=\"ai-note\">Updated {cellAddress}.</div>";
+            }
+
+            var styleFormat = ExtractAndBuildCellStyle(cellPayload);
+            if (styleFormat != null)
+            {
+                await _spreadsheetInstance!.CellFormatAsync(styleFormat, cellAddress);
+                htmlResponse += $"<div class=\"ai-note\">Applied style to {cellAddress}.</div>";
+            }
+        }
+
+        return htmlResponse;
+    }
+
+    /// <summary>
+    /// Extracts cell value from cell payload.
+    /// </summary>
+    /// <param name="cellPayload">The cell payload string.</param>
+    /// <returns>The extracted cell value or null.</returns>
+    private string? ExtractCellValue(string cellPayload)
+    {
+        // Capture a JSON "formula": "..." entry to extract formula strings
+        var formulaMatch = Regex.Match(cellPayload, "\"formula\"\\s*:\\s*\"(?<formula>[^\"]*)\"", RegexOptions.IgnoreCase);
+        if (formulaMatch.Success)
+        {
+            return formulaMatch.Groups["formula"].Value;
+        }
+
+        // Capture "value": null or "value": "text" entries from the cell payload
+        var valueMatch = Regex.Match(cellPayload, "\"value\"\\s*:\\s*(?<val>null|\"[^\"]*\")", RegexOptions.IgnoreCase);
+        if (valueMatch.Success)
+        {
+            var raw = valueMatch.Groups["val"].Value?.Trim();
+            if (!string.Equals(raw, "null", StringComparison.OrdinalIgnoreCase) && !string.IsNullOrEmpty(raw))
+            {
+                if (raw.StartsWith("\"") && raw.EndsWith("\"") && raw.Length >= 2)
+                {
+                    return raw.Substring(1, raw.Length - 2);
+                }
+                return raw;
+            }
+        }
+
+        return null;
+    }
+
+    /// <summary>
+    /// Extracts and builds cell style from cell payload.
+    /// </summary>
+    /// <param name="cellPayload">The cell payload string.</param>
+    /// <returns>CellFormat object or null.</returns>
+    private CellFormat? ExtractAndBuildCellStyle(string cellPayload)
+    {
+        // Capture a "style": { ... } object and return the inner properties as group 'props'
+        var styleObjectMatch = Regex.Match(cellPayload ?? string.Empty, 
+            "\"style\"\\s*:\\s*\\{(?<props>[\\s\\S]*?)\\}", RegexOptions.IgnoreCase);
+        
+        if (styleObjectMatch.Success)
+        {
+            var styleProps = styleObjectMatch.Groups["props"].Value;
+            return BuildCellFormatFromAi(styleProps);
+        }
+
+        return null;
+    }
+    #endregion
+
+    #region Helper Methods - Style Building
+    /// <summary>
+    /// Builds a CellFormat object from AI-generated style properties.
+    /// </summary>
+    /// <param name="styleProperties">The style properties string.</param>
+    /// <returns>CellFormat object or null if no styles detected.</returns>
+    private CellFormat? BuildCellFormatFromAi(string styleProperties)
+    {
+        if (string.IsNullOrWhiteSpace(styleProperties))
+        {
+            return null;
+        }
+
+        var format = new CellFormat();
+        var hasAnyStyle = false;
+
+        hasAnyStyle |= ApplyBackgroundColor(format, styleProperties);
+        hasAnyStyle |= ApplyFontColor(format, styleProperties);
+        hasAnyStyle |= ApplyFontSize(format, styleProperties);
+        hasAnyStyle |= ApplyFontFamily(format, styleProperties);
+        hasAnyStyle |= ApplyFontStyles(format, styleProperties);
+        hasAnyStyle |= ApplyTextAlignment(format, styleProperties);
+        hasAnyStyle |= ApplyVerticalAlignment(format, styleProperties);
+
+        return hasAnyStyle ? format : null;
+    }
+
+    /// <summary>
+    /// Applies background color to the cell format.
+    /// </summary>
+    private bool ApplyBackgroundColor(CellFormat format, string styleProperties)
+    {
+        // Match JSON style property backgroundColor: "color" to extract the color value
+        var backgroundMatch = Regex.Match(styleProperties, "\"backgroundColor\"\\s*:\\s*\"(?<c>[^\"]+)\"", RegexOptions.IgnoreCase);
+        if (!backgroundMatch.Success)
+        {
+            // Fallback: match natural-language style hints like 'background color to red' or hex values
+            backgroundMatch = Regex.Match(styleProperties, "background(?:\\s*color)?\\s*(?:to|:)?\\s*(?<c>#?[A-Za-z0-9]+)", RegexOptions.IgnoreCase);
+        }
+        
+        if (backgroundMatch.Success)
+        {
+            format.BackgroundColor = ConvertToHexColor(backgroundMatch.Groups["c"].Value);
+            return true;
+        }
+        return false;
+    }
+
+    /// <summary>
+    /// Applies font color to the cell format.
+    /// </summary>
+    private bool ApplyFontColor(CellFormat format, string styleProperties)
+    {
+        // Match JSON style property color: "..." to extract font color
+        var fontColorMatch = Regex.Match(styleProperties, "\"color\"\\s*:\\s*\"(?<c>[^\"]+)\"", RegexOptions.IgnoreCase);
+        if (!fontColorMatch.Success)
+        {
+            // Fallback: match natural-language font color hints like 'font color to blue' or a hex code
+            fontColorMatch = Regex.Match(styleProperties, "font\\s*color\\s*(?:to|:)?\\s*(?<c>#?[A-Za-z0-9]+)", RegexOptions.IgnoreCase);
+        }
+        
+        if (fontColorMatch.Success)
+        {
+            format.Color = ConvertToHexColor(fontColorMatch.Groups["c"].Value);
+            return true;
+        }
+        return false;
+    }
+
+    /// <summary>
+    /// Applies font size to the cell format.
+    /// </summary>
+    private bool ApplyFontSize(CellFormat format, string styleProperties)
+    {
+        // Match JSON fontSize (e.g. "12pt" or numeric) and capture size and optional unit
+        var fontSizeMatch = Regex.Match(styleProperties, "\"fontSize\"\\s*:\\s*\"?(?<s>\\d+)(?<u>pt|px)?\"?", RegexOptions.IgnoreCase);
+        if (!fontSizeMatch.Success)
+        {
+            // Fallback: match natural-language font size hints like 'font size to 14'
+            fontSizeMatch = Regex.Match(styleProperties, "font\\s*size\\s*(?:to|is)?\\s*:?\\s*(?<s>\\d+)(?<u>pt|px)?", RegexOptions.IgnoreCase);
+        }
+        
+        if (fontSizeMatch.Success)
+        {
+            var size = fontSizeMatch.Groups["s"].Value;
+            var unit = fontSizeMatch.Groups["u"].Success ? fontSizeMatch.Groups["u"].Value : "pt";
+            format.FontSize = size + unit;
+            return true;
+        }
+        return false;
+    }
+
+    /// <summary>
+    /// Applies font family to the cell format.
+    /// </summary>
+    private bool ApplyFontFamily(CellFormat format, string styleProperties)
+    {
+        // Match JSON fontFamily: "Arial" to capture the family name
+        var fontFamilyMatch = Regex.Match(styleProperties, "\"fontFamily\"\\s*:\\s*\"(?<f>[^\"]+)\"", RegexOptions.IgnoreCase);
+        if (!fontFamilyMatch.Success)
+        {
+            // Fallback: match natural-language font family hints like 'font family to Calibri'
+            fontFamilyMatch = Regex.Match(styleProperties, "font\\s*family\\s*(?:to|:)?\\s*(?<f>[A-Za-z]+)", RegexOptions.IgnoreCase);
+        }
+        
+        if (fontFamilyMatch.Success)
+        {
+            var family = fontFamilyMatch.Groups["f"].Value;
+            if (Enum.TryParse<FontFamily>(family, true, out var parsedFamily))
+            {
+                format.FontFamily = parsedFamily;
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /// <summary>
+    /// Applies font styles (bold, italic, underline) to the cell format.
+    /// </summary>
+    private bool ApplyFontStyles(CellFormat format, string styleProperties)
+    {
+        var hasStyle = false;
+
+        // Detect 'bold' either as a JSON flag ("bold": true) or as a keyword in free text
+        if (Regex.IsMatch(styleProperties, "\"bold\"\\s*:\\s*true|\\bbold\\b", RegexOptions.IgnoreCase))
+        {
+            format.FontWeight = FontWeight.Bold;
+            hasStyle = true;
+        }
+        
+        // Detect 'italic' either as a JSON flag or as a keyword
+        if (Regex.IsMatch(styleProperties, "\"italic\"\\s*:\\s*true|\\bitalic\\b", RegexOptions.IgnoreCase))
+        {
+            format.FontStyle = FontStyle.Italic;
+            hasStyle = true;
+        }
+        
+        // Detect 'underline' either as a JSON flag or as a keyword
+        if (Regex.IsMatch(styleProperties, "\"underline\"\\s*:\\s*true|\\bunderline\\b", RegexOptions.IgnoreCase))
+        {
+            format.TextDecoration = TextDecoration.Underline;
+            hasStyle = true;
+        }
+
+        return hasStyle;
+    }
+
+    /// <summary>
+    /// Applies text alignment to the cell format.
+    /// </summary>
+    private bool ApplyTextAlignment(CellFormat format, string styleProperties)
+    {
+        // Match text alignment directives like 'center', 'left', or 'right'
+        var textAlignMatch = Regex.Match(styleProperties, "text\\s*align\\s*(?:to|:)?\\s*(?<a>center|left|right)", RegexOptions.IgnoreCase);
+        if (textAlignMatch.Success && Enum.TryParse<TextAlign>(textAlignMatch.Groups["a"].Value, true, out var parsedAlign))
+        {
+            format.TextAlign = parsedAlign;
+            return true;
+        }
+        return false;
+    }
+
+    /// <summary>
+    /// Applies vertical alignment to the cell format.
+    /// </summary>
+    private bool ApplyVerticalAlignment(CellFormat format, string styleProperties)
+    {
+        // Match vertical alignment directives like 'middle', 'top', or 'bottom'
+        var verticalAlignMatch = Regex.Match(styleProperties, "vertical\\s*align\\s*(?:to|:)?\\s*(?<v>middle|top|bottom)", RegexOptions.IgnoreCase);
+        if (verticalAlignMatch.Success)
+        {
+            var v = verticalAlignMatch.Groups["v"].Value;
+            if (v.Equals("middle", StringComparison.OrdinalIgnoreCase))
+            {
+                v = "Middle";
+            }
+            
+            if (Enum.TryParse<VerticalAlign>(v, true, out var parsedVAlign))
+            {
+                format.VerticalAlign = parsedVAlign;
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /// <summary>
+    /// Converts color names to hex color codes.
+    /// </summary>
+    /// <param name="value">The color name or hex value.</param>
+    /// <returns>Hex color code.</returns>
+    private string ConvertToHexColor(string? value)
+    {
+        var normalizedValue = (value ?? string.Empty).Trim().Trim('"').Trim();
+        if (string.IsNullOrEmpty(normalizedValue))
+        {
+            return normalizedValue;
+        }
+        
+        if (normalizedValue.StartsWith("#"))
+        {
+            return normalizedValue;
+        }
+
+        var colorMap = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+        {
+            {"red", "#FF0000"},
+            {"blue", "#2196F3"},
+            {"yellow", "#FFEB3B"},
+            {"white", "#FFFFFF"},
+            {"black", "#000000"},
+            {"green", "#4CAF50"},
+            {"gray", "#4B5366"},
+            {"grey", "#4B5366"}
+        };
+
+        return colorMap.TryGetValue(normalizedValue, out var hex) ? hex : normalizedValue;
+    }
+    #endregion
+
+    #region Helper Methods - UI State
+    /// <summary>
+    /// Shows the loading state in the AssistView.
+    /// </summary>
+    private async Task ShowLoadingStateAsync()
+    {
+        await InvokeAsync(() =>
+        {
+            _isLoading = true;
+            StateHasChanged();
+        });
+    }
+
+    /// <summary>
+    /// Prepares the AssistView for displaying results.
+    /// </summary>
+    private async Task PrepareAssistViewAsync()
+    {
+        if (_isAssistVisible)
+        {
+            _isAssistVisible = false;
+            await Task.Delay(150);
+        }
+        
+        _isAssistVisible = true;
+        _isLoading = true;
+        await InvokeAsync(StateHasChanged);
+    }
+
+    /// <summary>
+    /// Displays the AI response in the AssistView.
+    /// </summary>
+    /// <param name="response">The response HTML to display.</param>
+    private async Task DisplayResponseAsync(string response)
+    {
+        _isLoading = false;
+        if (_assistView is not null)
+        {
+            await _assistView.UpdateResponseAsync(response);
+        }
+        await InvokeAsync(StateHasChanged);
+    }
+
+    /// <summary>
+    /// Updates the AssistView with the AI response.
+    /// </summary>
+    /// <param name="args">Event arguments to update.</param>
+    /// <param name="response">The response to display.</param>
+    private async Task UpdateAssistViewResponseAsync(AssistViewPromptRequestedEventArgs args, string response)
+    {
+        await InvokeAsync(async () =>
+        {
+            _isLoading = false;
+            args.Response = response;
+            if (_assistView is not null)
+            {
+                await _assistView.UpdateResponseAsync(response);
+            }
+            StateHasChanged();
+        });
+    }
+    #endregion
+
+    #region Helper Methods - Data Processing
+    /// <summary>
+    /// Extracts the used range from the active worksheet.
+    /// </summary>
+    private void ExtractUsedRange()
+    {
+        var workBookProperty = typeof(SfSpreadsheet).GetProperty("WorkBook", BindingFlags.NonPublic | BindingFlags.Instance);
+        int sheetIndex = _spreadsheetInstance!.GetActiveWorksheet().Index;
+        
+        if (workBookProperty?.GetValue(_spreadsheetInstance) is IWorkbook workbook)
+        {
+            var worksheet = workbook.Worksheets[sheetIndex];
+            _usedRange = worksheet.UsedRange.AddressLocal;
+        }
+    }
+
+    /// <summary>
+    /// Serializes cell data to JSON format.
+    /// </summary>
+    /// <param name="cellData">The cell data to serialize.</param>
+    /// <returns>JSON string representation of the cell data.</returns>
+    private string SerializeCellData(object cellData)
+    {
+        return System.Text.Json.JsonSerializer.Serialize(cellData, new System.Text.Json.JsonSerializerOptions { WriteIndented = true })
+            .Replace("```json", string.Empty)
+            .Replace("```", string.Empty)
+            .Trim();
+    }
+    #endregion
+}
+
+@*Hidden:Lines*@
+<style>
+    .e-spreadsheet-protection-dialog label,
+    .e-spreadsheet-unprotect-dialog label,
+    .e-unprotectworkbook-dlg label,
+    .e-spreadsheet-name-manager-content label {
+        font-weight: normal !important;
+        margin-bottom: 0 !important;
+    }
+
+    .e-protectworkbook-dlg label {
+        font-weight: normal !important;
+    }
+
+    /* Sidebar overlay panel styling and prompt width fix */
+    .ai-assist-sidebar {
+        box-shadow: -2px 0 8px rgba(0,0,0,0.15);
+    }
+
+    .ai-assist-pane,
+    .e-aiassistview {
+        width: 100%;
+        height: 100%;
+        box-sizing: border-box;
+        display: block;
+    }
+
+        .e-aiassistview .e-footer,
+        .e-aiassistview .e-footer .e-input,
+        .e-aiassistview .e-footer textarea,
+        .e-aiassistview .e-footer .e-input-group {
+            width: 100%;
+            max-width: 100%;
+        }
+
+        .e-aiassistview .e-footer {
+            padding: 8px;
+        }
+
+        .e-aiassistview .e-footer {
+            width: 90%;
+        }
+    /* banner loading + shimmer */
+    .banner-loading {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 12px;
+    }
+
+        .banner-loading .spinner {
+            width: 28px;
+            height: 18px;
+            border-radius: 50%;
+            background: linear-gradient(90deg,#eee,#ddd,#eee);
+            animation: spin 1s linear infinite;
+        }
+
+        .banner-loading .simmer {
+            height: 24px;
+            width: 160px;
+            border-radius: 4px;
+            background: linear-gradient(90deg,#f2f2f2,#e9e9e9,#f2f2f2);
+            background-size: 200px 100%;
+            animation: simmer 1.2s linear infinite;
+        }
+
+    /* larger banner variant used in markup: .banner-loading-large */
+    .banner-loading-large {
+        padding: 16px 18px;
+        gap: 12px;
+    }
+
+        .banner-loading-large .spinner {
+            width: 46px;
+            height: 46px;
+        }
+
+        .banner-loading-large .banner-loading-body {
+            display: flex;
+            flex-direction: column;
+        }
+
+            .banner-loading-large .banner-loading-body .label {
+                font-size: 16px;
+                font-weight: 600;
+                color: var(--bs-body-color,#222);
+                margin-bottom: 6px;
+            }
+
+        .banner-loading-large .simmer {
+            height: 28px;
+            width: 220px;
+            border-radius: 6px;
+        }
+
+    /* response-area loading placeholder removed — using banner shimmer instead */
+    .fab-hover .text-container {
+        overflow: hidden;
+        width: 0;
+        margin: 0;
+        transition: width .2s linear 0s, margin .2s linear .2s;
+    }
+
+    .fab-hover:hover .text-container {
+        width: 70px;
+        margin: 0 5px;
+        transition: width .2s linear .2s, margin .2s linear 0s;
+    }
+
+    .e-bigger .e-btn.fab-hover .e-btn-icon.e-icon-left,
+    .e-btn.fab-hover .e-btn-icon.e-icon-left {
+        margin-left: 0;
+        width: 1em;
+        padding: 0;
+    }
+
+    .e-bigger .e-fab.e-btn.fab-hover,
+    .e-fab.e-btn.fab-hover {
+        padding: 0 10px;
+    }
+
+    .e-bigger .fab-hover:hover .text-container {
+        width: 75px;
+    }
+
+    .e-fab.e-btn.e-fab-bottom {
+        bottom: 4px;
+    }
+</style>
+@*End:Hidden*@
+
