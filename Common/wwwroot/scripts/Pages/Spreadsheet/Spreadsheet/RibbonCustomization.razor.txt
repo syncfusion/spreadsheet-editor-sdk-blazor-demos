@@ -1,0 +1,207 @@
+﻿@page "/spreadsheet/ribbon-customization"
+
+@using Syncfusion.Blazor.Spreadsheet
+@using Syncfusion.Blazor.Ribbon
+@using System;
+@using System.IO;
+
+@*Hidden:Lines*@
+@inherits SampleBaseComponent;
+@inject NavigationManager NavigationManager
+@*End:Hidden*@
+
+<ActionDescription>
+    <p>This sample demonstrates the ribbon customization capabilities of Blazor Spreadsheet. You can dynamically customize the ribbon UI through methods or properties to enhance the spreadsheet interface.</p>
+    <p><strong>Customization Options:</strong></p>
+    <ul>
+        <li><strong>Built-in Ribbon Customization:</strong> Control visibility, order, and state of ribbon tabs, groups, and items using properties like <a target="_blank" href="https://help.syncfusion.com/cr/blazor/Syncfusion.Blazor.Spreadsheet.SfSpreadsheet.html#Syncfusion_Blazor_Spreadsheet_SfSpreadsheet_RibbonTabItems" aria-label="Navigate to the RibbonTabItems property documentation">RibbonTabItems</a>, <a target="_blank" href="https://help.syncfusion.com/cr/blazor/Syncfusion.Blazor.Ribbon.RibbonTab.html#Syncfusion_Blazor_Ribbon_RibbonTab_RibbonGroupItems" aria-label="Navigate to the RibbonGroupItems property documentation">RibbonGroupItems</a>, and <a target="_blank" href="https://help.syncfusion.com/cr/blazor/Syncfusion.Blazor.Ribbon.RibbonGroup.html#Syncfusion_Blazor_Ribbon_RibbonGroup_RibbonItems" aria-label="Navigate to the RibbonItems property documentation">RibbonItems</a></li>
+        <li><strong>Custom Ribbon Extensions:</strong> Add custom ribbon tabs, groups, and items using <a target="_blank" href="https://help.syncfusion.com/cr/blazor/Syncfusion.Blazor.Spreadsheet.SfSpreadsheet.html#Syncfusion_Blazor_Spreadsheet_SfSpreadsheet_CustomRibbonTabs" aria-label="Navigate to the CustomRibbonTabs property documentation">CustomRibbonTabs</a>, <a target="_blank" href="https://help.syncfusion.com/cr/blazor/Syncfusion.Blazor.Spreadsheet.SfSpreadsheet.html#Syncfusion_Blazor_Spreadsheet_SfSpreadsheet_CustomRibbonGroups" aria-label="Navigate to the CustomRibbonGroups property documentation">CustomRibbonGroups</a>, and <a target="_blank" href="https://help.syncfusion.com/cr/blazor/Syncfusion.Blazor.Spreadsheet.SfSpreadsheet.html#Syncfusion_Blazor_Spreadsheet_SfSpreadsheet_CustomRibbonItems" aria-label="Navigate to the CustomRibbonItems property documentation">CustomRibbonItems</a> for extended functionality</li>
+        <li><strong>Dynamic Ribbon Methods:</strong> Use methods like <a target="_blank" href="https://help.syncfusion.com/cr/blazor/Syncfusion.Blazor.Spreadsheet.SfSpreadsheet.html#Syncfusion_Blazor_Spreadsheet_SfSpreadsheet_HideRibbonItems_System_String_System_String_" aria-label="Navigate to the HideRibbonItems method documentation">HideRibbonItems</a>, <a target="_blank" href="https://help.syncfusion.com/cr/blazor/Syncfusion.Blazor.Spreadsheet.SfSpreadsheet.html#Syncfusion_Blazor_Spreadsheet_SfSpreadsheet_ShowRibbonItems_System_String_System_String_" aria-label="Navigate to the ShowRibbonItems method documentation">ShowRibbonItems</a>, <a target="_blank" href="https://help.syncfusion.com/cr/blazor/Syncfusion.Blazor.Spreadsheet.SfSpreadsheet.html#Syncfusion_Blazor_Spreadsheet_SfSpreadsheet_EnableRibbonItems_System_String_System_String_" aria-label="Navigate to the EnableRibbonItems method documentation">EnableRibbonItems</a>, <a target="_blank" href="https://help.syncfusion.com/cr/blazor/Syncfusion.Blazor.Spreadsheet.SfSpreadsheet.html#Syncfusion_Blazor_Spreadsheet_SfSpreadsheet_DisableRibbonItems_System_String_System_String_" aria-label="Navigate to the DisableRibbonItems method documentation">DisableRibbonItems</a>, <a target="_blank" href="https://help.syncfusion.com/cr/blazor/Syncfusion.Blazor.Spreadsheet.SfSpreadsheet.html#Syncfusion_Blazor_Spreadsheet_SfSpreadsheet_AddRibbonItems_System_String_System_Collections_Generic_List_Syncfusion_Blazor_Spreadsheet_SpreadsheetRibbonItem__" aria-label="Navigate to the AddRibbonItems method documentation">AddRibbonItems</a>, <a target="_blank" href="https://help.syncfusion.com/cr/blazor/Syncfusion.Blazor.Spreadsheet.SfSpreadsheet.html#Syncfusion_Blazor_Spreadsheet_SfSpreadsheet_HideRibbonTabs_System_String_" aria-label="Navigate to the HideRibbonTabs method documentation">HideRibbonTabs</a>, <a target="_blank" href="https://help.syncfusion.com/cr/blazor/Syncfusion.Blazor.Spreadsheet.SfSpreadsheet.html#Syncfusion_Blazor_Spreadsheet_SfSpreadsheet_ShowRibbonTabs_System_String_" aria-label="Navigate to the ShowRibbonTabs method documentation">ShowRibbonTabs</a>, <a target="_blank" href="https://help.syncfusion.com/cr/blazor/Syncfusion.Blazor.Spreadsheet.SfSpreadsheet.html#Syncfusion_Blazor_Spreadsheet_SfSpreadsheet_EnableRibbonTabs_System_String_" aria-label="Navigate to the EnableRibbonTabs method documentation">EnableRibbonTabs</a>, <a target="_blank" href="https://help.syncfusion.com/cr/blazor/Syncfusion.Blazor.Spreadsheet.SfSpreadsheet.html#Syncfusion_Blazor_Spreadsheet_SfSpreadsheet_DisableRibbonTabs_System_String_" aria-label="Navigate to the DisableRibbonTabs method documentation">DisableRibbonTabs</a>, and <a target="_blank" href="https://help.syncfusion.com/cr/blazor/Syncfusion.Blazor.Spreadsheet.SfSpreadsheet.html#Syncfusion_Blazor_Spreadsheet_SfSpreadsheet_AddRibbonTab_Syncfusion_Blazor_Spreadsheet_SpreadsheetCustomRibbonTab_" aria-label="Navigate to the AddRibbonTab method documentation">AddRibbonTab</a> to update the ribbon at runtime</li>
+        <li><strong>File Menu Customization:</strong> Customize the file menu with methods like <a target="_blank" href="https://help.syncfusion.com/cr/blazor/Syncfusion.Blazor.Spreadsheet.SfSpreadsheet.html#Syncfusion_Blazor_Spreadsheet_SfSpreadsheet_HideFileMenuItems_System_String_" aria-label="Navigate to the HideFileMenuItems method documentation">HideFileMenuItems</a>, <a target="_blank" href="https://help.syncfusion.com/cr/blazor/Syncfusion.Blazor.Spreadsheet.SfSpreadsheet.html#Syncfusion_Blazor_Spreadsheet_SfSpreadsheet_ShowFileMenuItems_System_String_" aria-label="Navigate to the ShowFileMenuItems method documentation">ShowFileMenuItems</a>, <a target="_blank" href="https://help.syncfusion.com/cr/blazor/Syncfusion.Blazor.Spreadsheet.SfSpreadsheet.html#Syncfusion_Blazor_Spreadsheet_SfSpreadsheet_EnableFileMenuItems_System_String_" aria-label="Navigate to the EnableFileMenuItems method documentation">EnableFileMenuItems</a>, <a target="_blank" href="https://help.syncfusion.com/cr/blazor/Syncfusion.Blazor.Spreadsheet.SfSpreadsheet.html#Syncfusion_Blazor_Spreadsheet_SfSpreadsheet_DisableFileMenuItems_System_String_" aria-label="Navigate to the DisableFileMenuItems method documentation">DisableFileMenuItems</a>, and <a target="_blank" href="https://help.syncfusion.com/cr/blazor/Syncfusion.Blazor.Spreadsheet.SfSpreadsheet.html#Syncfusion_Blazor_Spreadsheet_SfSpreadsheet_AddFileMenuItems_System_Collections_Generic_List_Syncfusion_Blazor_Spreadsheet_FileMenuItems_" aria-label="Navigate to the AddFileMenuItems method documentation">AddFileMenuItems</a></li>
+    </ul>
+
+    <p>In this demo, the default <strong>Clear</strong> dropdown is hidden from the <strong>Home</strong> tab. A custom tab is added with buttons for various clearing operations:</p>
+    <ul>
+        <li><strong>Clear All</strong> - Removes both content and formatting from the selected cells.</li>
+        <li><strong>Clear Content</strong> - Removes only the cell content while preserving the formatting.</li>
+        <li><strong>Clear Format</strong> - Removes only the formatting while preserving the content.</li>
+        <li><strong>Clear Links</strong> - Removes hyperlinks from the selected cells.</li>
+    </ul>
+    <p>This demonstrates customization of the ribbon by hiding built-in items and introducing a dedicated tab with specialized buttons for specific operations.</p>
+
+    <p>For more detailed information about ribbon customization, refer to the <a target="_blank" href="https://help.syncfusion.com/document-processing/excel/spreadsheet/blazor/ribbon-customization" aria-label="Navigate to the Blazor Spreadsheet ribbon customization documentation">ribbon customization documentation</a>.</p>
+
+    <p>Looking for the full Blazor Spreadsheet Editor component overview, features, pricing, and documentation? Visit the <a rel="noopener" target='_blank' href='https://www.syncfusion.com/spreadsheet-editor-sdk/blazor-spreadsheet-editor' aria-label="Navigate to the Blazor Spreadsheet Editor FT page">Blazor Spreadsheet Editor component</a> page.</p>
+</ActionDescription>
+<div class="col-lg-12 control-section">
+    <div class="content-wrapper">
+        <div class="row">
+
+            <div>
+                <SfSpreadsheet DataSource="DataSourceBytes" @ref="_spreadsheetInstance">
+                    <SpreadsheetRibbon RibbonItems="@HideClearItem()" CustomRibbonTabs="@GetCustomTabs()">
+                    </SpreadsheetRibbon>
+                </SfSpreadsheet>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+@*Hidden:Lines*@
+<style>
+    .e-spreadsheet-protection-dialog label,
+    .e-spreadsheet-unprotect-dialog label,
+    .e-unprotectworkbook-dlg label,
+    .e-spreadsheet-name-manager-content label {
+        font-weight: normal !important;
+        margin-bottom: 0 !important;
+    }
+
+    .e-protectworkbook-dlg label {
+        font-weight: normal !important;
+    }
+</style>
+@*End:Hidden*@
+
+@code {
+
+    public byte[] DataSourceBytes { get; set; }
+    public SfSpreadsheet _spreadsheetInstance { get; set; }
+
+    protected override void OnInitialized()
+    {
+        @*Server:Block*@
+#if !(WASM)
+        //Sets the excel file path for initial loading.
+        string filePath = "wwwroot/data/spreadsheet/ribbon.xlsx";
+        DataSourceBytes = File.ReadAllBytes(filePath);
+#endif
+        @*End:Server*@
+
+        @*WebAssembly:Block*@
+#if (WASM)
+    //Sets the excel file path for initial loading.
+    string filePath = "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";
+    DataSourceBytes = Convert.FromBase64String(filePath);
+#endif
+        @*End:WebAssembly*@
+    }
+
+    @*Hidden:Lines*@
+    @*WebAssembly:Block*@
+#if (WASM)
+    protected override void OnAfterRender(bool firstRender)
+    {
+        if (firstRender)
+        {
+            _spreadsheetInstance.CustomFonts = CustomFonts;
+        }
+    }
+
+    public List<string> CustomFonts = new List<string>
+    {
+        "fonts/Arial.TTF",
+        "fonts/Calibri.TTF",
+        "fonts/Courier New.TTF",
+        "fonts/Georgia.TTF",
+        "fonts/Algerian.TTF",
+        "fonts/Cambria.TTF",
+        "fonts/Cambria Math.TTF",
+        "fonts/Candara.TTF",
+        "fonts/Impact.TTF",
+        "fonts/Segoe Print.TTF",
+        "fonts/Segoe UI.TTF",
+        "fonts/Segoe Script.TTF",
+        "fonts/Symbol.TTF",
+        "fonts/Times New Roman.TTF",
+        "fonts/Verdana.TTF",
+        "fonts/Wingdings.TTF"
+    };
+#endif
+    @*End:WebAssembly*@
+    @*End:Hidden*@
+
+    private List<SpreadsheetRibbonItem> HideClearItem()
+    {
+        return new List<SpreadsheetRibbonItem>
+        {
+            new SpreadsheetRibbonItem { ItemId = "clear", IsVisible = false }
+        };
+    }
+
+    private List<SpreadsheetCustomRibbonTab> GetCustomTabs()
+    {
+        return new List<SpreadsheetCustomRibbonTab>
+        {
+            new SpreadsheetCustomRibbonTab
+            {
+                Index = 5,
+                Template = CreateClearTab()
+            }
+        };
+    }
+
+    private RenderFragment CreateClearTab()
+    {
+        return @<RibbonTab ID="clearTab" HeaderText="Clear">
+            <RibbonGroups>
+                <RibbonGroup ID="clearGroup" HeaderText="Clear Options"
+                             Orientation="Syncfusion.Blazor.Ribbon.Orientation.Row">
+                    <RibbonCollections>
+                        <RibbonCollection>
+                            <RibbonItems>
+                                <RibbonItem Type="RibbonItemType.Button">
+                                    <RibbonButtonSettings Content="Clear All"
+                                                              IconCss="e-icons e-trash"
+                                                          @onclick="ClearAll">
+                                    </RibbonButtonSettings>
+                                </RibbonItem>
+                                <RibbonItem Type="RibbonItemType.Button">
+                                    <RibbonButtonSettings Content="Clear Content"
+                                                              IconCss="e-icons e-magic-wand"
+                                                          @onclick="ClearContent">
+                                    </RibbonButtonSettings>
+                                </RibbonItem>
+                                <RibbonItem Type="RibbonItemType.Button">
+                                    <RibbonButtonSettings Content="Clear Format"
+                                                              IconCss="e-icons e-clear-format"
+                                                          @onclick="ClearFormat">
+                                    </RibbonButtonSettings>
+                                </RibbonItem>
+                                <RibbonItem Type="RibbonItemType.Button">
+                                    <RibbonButtonSettings Content="Clear Links"
+                                                          IconCss="e-icons e-link-remove"
+                                                          @onclick="ClearLinks">
+                                    </RibbonButtonSettings>
+                                </RibbonItem>
+
+                            </RibbonItems>
+                        </RibbonCollection>
+                    </RibbonCollections>
+                </RibbonGroup>
+            </RibbonGroups>
+        </RibbonTab>;
+    }
+
+    private async Task ClearAll()
+    {
+        await _spreadsheetInstance.ClearAsync(ClearOperationType.ClearAll);
+    }
+
+    private async Task ClearContent()
+    {
+        await _spreadsheetInstance.ClearAsync(ClearOperationType.ClearContents);
+    }
+
+    private async Task ClearFormat()
+    {
+        await _spreadsheetInstance.ClearAsync(ClearOperationType.ClearFormats);
+    }
+
+    private async Task ClearLinks()
+    {
+        await _spreadsheetInstance.ClearAsync(ClearOperationType.ClearHyperlinks);
+    }
+}
+
