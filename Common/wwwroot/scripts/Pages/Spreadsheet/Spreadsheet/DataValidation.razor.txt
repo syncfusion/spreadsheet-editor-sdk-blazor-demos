@@ -1,0 +1,132 @@
+@page "/spreadsheet/data-validation"
+
+@using Syncfusion.Blazor.Spreadsheet
+@using System;
+@using System.IO;
+
+@*Hidden:Lines*@
+@inherits SampleBaseComponent;
+@inject NavigationManager NavigationManager
+@*End:Hidden*@
+
+<SampleDescription>
+    <p>This sample demonstrates data validation in a gross pay calculation worksheet. Use the Blazor Spreadsheet to work with validated worksheet data.</p>
+</SampleDescription>
+
+<ActionDescription>
+    <p>This sample demonstrates data validation in the Blazor Spreadsheet using a gross pay calculation worksheet. The worksheet provides the sample context for working with validated data. To enable data validation, set the <a href="https://help.syncfusion.com/cr/blazor/Syncfusion.Blazor.Spreadsheet.SfSpreadsheet.html#Syncfusion_Blazor_Spreadsheet_SfSpreadsheet_AllowDataValidation" target="_blank" rel="noopener noreferrer" aria-label="Navigate to the AllowDataValidation property documentation">AllowDataValidation</a> property to <strong>true</strong>. This allows users to apply validation rules to cells and ranges and restrict entries to acceptable values.</p>
+    
+    <p> Highlight invalid cells using the <a target="_blank" href="https://help.syncfusion.com/cr/blazor/Syncfusion.Blazor.Spreadsheet.SfSpreadsheet.html#Syncfusion_Blazor_Spreadsheet_SfSpreadsheet_ShowInvalidDataHighlights" aria-label="Navigate to the ShowInvalidDataHighlights property documentation">ShowInvalidDataHighlights</a> property. The default value is <strong>false</strong>.</p>
+    <p><strong>Key Features</strong></p>
+    <ul>
+        <li><strong>Validation rules</strong> - Restrict entries in cells or ranges to acceptable values.</li>
+        <li><strong>Validation criteria</strong> - Validate whole numbers, decimals, dates, times, text length, lists, and custom formulas.</li>
+        <li><strong>Highlight Invalid Data</strong> - Identify invalid cells with a yellow background and red text.</li>
+        <li><strong>Clear Validation</strong> - Remove validation rules from selected cells or ranges.</li>
+        <li><strong>Worksheet validation</strong> - Apply rules through the <strong>Data</strong> tab in the ribbon.</li>
+    </ul>
+    <p>
+        Apply data validation through the ribbon or use <a target="_blank" href="https://help.syncfusion.com/cr/blazor/Syncfusion.Blazor.Spreadsheet.SfSpreadsheet.html#Syncfusion_Blazor_Spreadsheet_SfSpreadsheet_AddDataValidationAsync_Syncfusion_Blazor_Spreadsheet_ValidationRule_" aria-label="Navigate to the Blazor Spreadsheet AddDataValidationAsync documentation">AddDataValidationAsync</a> and <a target="_blank" href="https://help.syncfusion.com/cr/blazor/Syncfusion.Blazor.Spreadsheet.SfSpreadsheet.html#Syncfusion_Blazor_Spreadsheet_SfSpreadsheet_RemoveDataValidationAsync_System_String_" aria-label="Navigate to the Blazor Spreadsheet RemoveDataValidationAsync documentation">RemoveDataValidationAsync</a> for programmatic validation rule management.
+    </p>
+
+    <p>Learn how to maintain accurate data entry by applying validation rules and identifying invalid values.</p>
+
+    <p><strong>Documentation Links</strong></p>
+    <ul>
+        <li><a href="https://help.syncfusion.com/document-processing/excel/spreadsheet/blazor/cell-range#data-validation" target="_blank" rel="noopener noreferrer" aria-label="Navigate to the Blazor Spreadsheet Data Validation documentation">Data Validation</a></li>
+        <li><a href="https://help.syncfusion.com/cr/blazor/Syncfusion.Blazor.Spreadsheet.SfSpreadsheet.html#Syncfusion_Blazor_Spreadsheet_SfSpreadsheet_AllowDataValidation" target="_blank" rel="noopener noreferrer" aria-label="Navigate to the AllowDataValidation property documentation">API Reference</a></li>
+    </ul>
+
+    <p><strong>More Resources</strong></p>
+    <ul>
+        <li><a href="https://github.com/SyncfusionExamples/blazor-spreadsheet-examples" target="_blank" rel="noopener noreferrer" aria-label="View the sample in GitHub">View Sample in GitHub</a></li>
+    </ul>
+    <p>Looking for the full Blazor Spreadsheet Editor component overview, features, pricing, and documentation? Visit the <a rel="noopener" target='_blank' href='https://www.syncfusion.com/spreadsheet-editor-sdk/blazor-spreadsheet-editor' aria-label="Navigate to the Blazor Spreadsheet Editor FT page">Blazor Spreadsheet Editor component</a> page.</p>
+</ActionDescription>
+
+<div class="col-lg-12 control-section">
+    <div class="content-wrapper">
+        <div class="row">
+            <div>
+                <SfSpreadsheet DataSource="DataSourceBytes" ShowInvalidDataHighlights="true" @ref=_spreadsheetInstance>
+                    <SpreadsheetRibbon></SpreadsheetRibbon>
+                </SfSpreadsheet>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+@*Hidden:Lines*@
+<style>
+    .e-spreadsheet-protection-dialog label,
+    .e-spreadsheet-unprotect-dialog label,
+    .e-unprotectworkbook-dlg label,
+    .e-spreadsheet-name-manager-content label {
+        font-weight: normal !important;
+        margin-bottom: 0 !important;
+    }
+
+    .e-protectworkbook-dlg label {
+        font-weight: normal !important;
+    }
+</style>
+@*End:Hidden*@
+
+@code {
+    public byte[] DataSourceBytes { get; set; }
+    public SfSpreadsheet _spreadsheetInstance { get; set; }
+
+    protected override void OnInitialized()
+    {
+        @*Server:Block*@
+#if !(WASM)
+        //Sets the excel file path for initial loading.
+        string filePath = "wwwroot/data/spreadsheet/datavalidation.xlsx";
+        DataSourceBytes = File.ReadAllBytes(filePath);
+#endif
+        @*End:Server*@
+
+        @*WebAssembly:Block*@
+#if (WASM)
+    //Sets the excel file path for initial loading.
+    string filePath = "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";
+    DataSourceBytes = Convert.FromBase64String(filePath);
+#endif
+        @*End:WebAssembly*@
+    }
+
+    @*Hidden:Lines*@
+    @*WebAssembly:Block*@
+#if (WASM)
+    protected override void OnAfterRender(bool firstRender)
+    {
+        if (firstRender)
+        {
+            _spreadsheetInstance.CustomFonts = CustomFonts;
+        }
+    }
+
+    public List<string> CustomFonts = new List<string>
+    {
+        "fonts/Arial.TTF",
+        "fonts/Calibri.TTF",
+        "fonts/Courier New.TTF",
+        "fonts/Georgia.TTF",
+        "fonts/Algerian.TTF",
+        "fonts/Cambria.TTF",
+        "fonts/Cambria Math.TTF",
+        "fonts/Candara.TTF",
+        "fonts/Impact.TTF",
+        "fonts/Segoe Print.TTF",
+        "fonts/Segoe UI.TTF",
+        "fonts/Segoe Script.TTF",
+        "fonts/Symbol.TTF",
+        "fonts/Times New Roman.TTF",
+        "fonts/Verdana.TTF",
+        "fonts/Wingdings.TTF"
+    };
+#endif
+    @*End:WebAssembly*@
+    @*End:Hidden*@
+}
