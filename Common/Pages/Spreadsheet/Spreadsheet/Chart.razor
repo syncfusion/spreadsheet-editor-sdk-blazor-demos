@@ -1,0 +1,132 @@
+@page "/spreadsheet/chart"
+
+@using Syncfusion.Blazor.Spreadsheet
+@using System;
+@using System.IO;
+
+@*Hidden:Lines*@
+@inherits SampleBaseComponent;
+@inject NavigationManager NavigationManager
+@*End:Hidden*@
+
+
+<SampleDescription>
+    <p>This sample demonstrates charts in the Blazor Spreadsheet using GDP data. Compare values for different countries across multiple years.</p>
+</SampleDescription>
+
+<ActionDescription>
+    <p>This sample demonstrates charts in the Blazor Spreadsheet by comparing the GDP of different countries across years. Use the chart view to review the data comparison visually. To enable charts, set the <a href="https://help.syncfusion.com/cr/blazor/Syncfusion.Blazor.Spreadsheet.SfSpreadsheet.html#Syncfusion_Blazor_Spreadsheet_SfSpreadsheet_AllowChart" target="_blank" rel="noopener noreferrer" aria-label="Navigate to the AllowChart property documentation">AllowChart</a> property to <strong>true</strong>. This allows users to add and manage charts alongside worksheet data.</p>
+
+    <p><strong>Key Features</strong></p>
+    <ul>
+        <li><strong>Insert charts</strong> - Visualize data trends, comparisons, and relationships in worksheets.</li>
+        <li><strong>Resize charts</strong> - Adjust chart height and width to fit the worksheet layout.</li>
+        <li><strong>Reposition charts</strong> - Organize worksheet content using <strong>drag-and-drop</strong>.</li>
+        <li><strong>Chart customization</strong> - Apply themes and styles, and modify titles, legends, axes, and data series.</li>
+        <li><strong>Chart import and export</strong> - Preserve chart data, formatting, theme, axis, title, and chart type in Excel files.</li>
+    </ul>
+    <p>
+        Insert charts through the ribbon or use <a target="_blank" href="https://help.syncfusion.com/cr/blazor/Syncfusion.Blazor.Spreadsheet.SfSpreadsheet.html#Syncfusion_Blazor_Spreadsheet_SfSpreadsheet_InsertChartAsync_System_" aria-label="Navigate to the Blazor Spreadsheet InsertChartAsync documentation">InsertChartAsync</a> and <a target="_blank" href="https://help.syncfusion.com/cr/blazor/Syncfusion.Blazor.Spreadsheet.SfSpreadsheet.html#Syncfusion_Blazor_Spreadsheet_SfSpreadsheet_DeleteChartAsync_System_String_" aria-label="Navigate to the Blazor Spreadsheet DeleteChartAsync documentation">DeleteChartAsync</a> for programmatic chart creation and removal.
+    </p>
+    <p>Learn how to visualize GDP data and manage charts alongside worksheet data.</p>
+
+    <p><strong>Documentation Links</strong></p>
+    <ul>
+        <li><a href="https://help.syncfusion.com/document-processing/excel/spreadsheet/blazor/illustrations" target="_blank" rel="noopener noreferrer" aria-label="Navigate to the Blazor Spreadsheet Charts documentation">Charts</a></li>
+        <li><a href="https://help.syncfusion.com/cr/blazor/Syncfusion.Blazor.Spreadsheet.SfSpreadsheet.html#Syncfusion_Blazor_Spreadsheet_SfSpreadsheet_AllowChart" target="_blank" rel="noopener noreferrer" aria-label="Navigate to the AllowChart property documentation">API Reference</a></li>
+    </ul>
+
+    <p><strong>More Resources</strong></p>
+    <ul>
+        <li><a href="https://github.com/SyncfusionExamples/blazor-spreadsheet-examples" target="_blank" rel="noopener noreferrer" aria-label="View the sample in GitHub">View Sample in GitHub</a></li>
+    </ul>
+    <p>Looking for the full Blazor Spreadsheet Editor component overview, features, pricing, and documentation? Visit the <a rel="noopener" target='_blank' href='https://www.syncfusion.com/spreadsheet-editor-sdk/blazor-spreadsheet-editor' aria-label="Navigate to the Blazor Spreadsheet Editor FT page">Blazor Spreadsheet Editor component</a> page.</p>
+</ActionDescription>
+
+<div class="col-lg-12 control-section">
+    <div class="content-wrapper">
+        <div class="row">
+            <div>
+                <SfSpreadsheet DataSource="DataSourceBytes" @ref=_spreadsheetInstance>
+                    <SpreadsheetRibbon></SpreadsheetRibbon>
+                </SfSpreadsheet>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+@*Hidden:Lines*@
+<style>
+    .e-spreadsheet-protection-dialog label,
+    .e-spreadsheet-unprotect-dialog label,
+    .e-unprotectworkbook-dlg label,
+    .e-spreadsheet-name-manager-content label {
+        font-weight: normal !important;
+        margin-bottom: 0 !important;
+    }
+
+    .e-protectworkbook-dlg label {
+        font-weight: normal !important;
+    }
+</style>
+@*End:Hidden*@
+
+@code {
+
+    public byte[] DataSourceBytes { get; set; }
+    public SfSpreadsheet _spreadsheetInstance { get; set; }
+
+    protected override void OnInitialized()
+    {
+        @*Server:Block*@
+#if !(WASM)
+        //Sets the excel file path for initial loading.
+        string filePath = "wwwroot/data/spreadsheet/chart.xlsx";
+        DataSourceBytes = File.ReadAllBytes(filePath);
+#endif
+        @*End:Server*@
+
+        @*WebAssembly:Block*@
+#if (WASM)
+    //Sets the excel file path for initial loading.
+    string filePath = "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";
+    DataSourceBytes = Convert.FromBase64String(filePath);
+#endif
+        @*End:WebAssembly*@
+    }
+
+    @*Hidden:Lines*@
+    @*WebAssembly:Block*@
+#if (WASM)
+    protected override void OnAfterRender(bool firstRender)
+    {
+        if (firstRender)
+        {
+            _spreadsheetInstance.CustomFonts = CustomFonts;
+        }
+    }
+
+    public List<string> CustomFonts = new List<string>
+    {
+        "fonts/Arial.TTF",
+        "fonts/Calibri.TTF",
+        "fonts/Courier New.TTF",
+        "fonts/Georgia.TTF",
+        "fonts/Algerian.TTF",
+        "fonts/Cambria.TTF",
+        "fonts/Cambria Math.TTF",
+        "fonts/Candara.TTF",
+        "fonts/Impact.TTF",
+        "fonts/Segoe Print.TTF",
+        "fonts/Segoe UI.TTF",
+        "fonts/Segoe Script.TTF",
+        "fonts/Symbol.TTF",
+        "fonts/Times New Roman.TTF",
+        "fonts/Verdana.TTF",
+        "fonts/Wingdings.TTF"
+    };
+#endif
+    @*End:WebAssembly*@
+    @*End:Hidden*@
+}

@@ -100,4 +100,4 @@ The Syncfusion license that contains the terms and conditions can be found at
 * [Syncfusion Blazor Components](https://www.syncfusion.com/blazor-components)
 * [Blazor Documentation](https://blazor.syncfusion.com/documentation/introduction)
 * [Blazor Smart/AI Samples](https://github.com/syncfusion/smart-ai-samples)
-<p>Copyright © 2001-2026 Syncfusion, Inc. Updated on 2026-09-30 at precisely 10:24:57 EST.</p> 
+<p>Copyright © 2001-2026 Syncfusion, Inc. Updated on 2026-11-20 at precisely 05:21:04 EST.</p> 

@@ -1,0 +1,119 @@
+@page "/spreadsheet/freezepane"
+
+@using Syncfusion.Blazor.Spreadsheet
+@using System;
+@using System.IO;
+
+@*Hidden:Lines*@
+@inherits SampleBaseComponent;
+@inject NavigationManager NavigationManager
+@*End:Hidden*@
+
+
+<ActionDescription>
+    <p>This sample demonstrates the freeze pane capabilities of Blazor Spreadsheet using a Gross Salary worksheet. It highlights how you can freeze rows and columns within a worksheet to keep important information visible while navigating large datasets.</p>
+
+    <p>The Blazor Spreadsheet freeze pane feature enables you to lock rows and columns within a worksheet. You can configure frozen panes using the <a href="https://help.syncfusion.com/cr/blazor/Syncfusion.Blazor.Spreadsheet.Sheet.html#Syncfusion_Blazor_Spreadsheet_Sheet_FrozenRows" target="_blank" rel="noopener noreferrer" aria-label="Navigate to the FrozenRows property documentation">FrozenRows</a> and <a href="https://help.syncfusion.com/cr/blazor/Syncfusion.Blazor.Spreadsheet.Sheet.html#Syncfusion_Blazor_Spreadsheet_Sheet_FrozenColumns" target="_blank" rel="noopener noreferrer" aria-label="Navigate to the FrozenColumns property documentation">FrozenColumns</a> properties to specify the number of rows and columns to freeze.</p>
+
+    <p><strong>Working with Freeze Panes::</strong></p>
+    <ul>
+        <li>Freeze rows to keep header information visible while scrolling vertically.</li>
+        <li>Freeze columns to retain important data while scrolling horizontally.</li>
+        <li>Freeze both rows and columns simultaneously to improve worksheet navigation.</li>
+        <li>Maintain visibility of key worksheet content when working with large datasets.</li>
+        <li>Improve readability and data analysis by keeping critical information always in view.</li>
+        <li>Import and export Excel files containing frozen rows and columns while preserving freeze pane settings.</li>
+    </ul>
+
+    <p>You can freeze rows and columns programmatically using the <a href="https://help.syncfusion.com/cr/blazor/Syncfusion.Blazor.Spreadsheet.SfSpreadsheet.html#Syncfusion_Blazor_Spreadsheet_SfSpreadsheet_FreezePanesAsync_System_Int32_System_Int32_" target="_blank" rel="noopener noreferrer" aria-label="Navigate to the Blazor Spreadsheet FreezePanesAsync documentation">FreezePanesAsync</a> method. To remove existing frozen panes, use the <a href="https://help.syncfusion.com/cr/blazor/Syncfusion.Blazor.Spreadsheet.SfSpreadsheet.html#Syncfusion_Blazor_Spreadsheet_SfSpreadsheet_UnfreezePanesAsync" target="_blank" rel="noopener noreferrer" aria-label="Navigate to the Blazor Spreadsheet UnfreezePanesAsync documentation">UnfreezePanesAsync</a> method, which restores the default worksheet scrolling behavior.</p>
+    <p>For more detailed information about freeze panes, refer to the <a href="https://help.syncfusion.com/document-processing/excel/spreadsheet/blazor/freeze-pane" target="_blank" rel="noopener noreferrer" aria-label="Navigate to the Blazor Spreadsheet Freeze Panes documentation">freeze panes documentation</a>.</p>
+    <p>Looking for the full Blazor Spreadsheet Editor component overview, features, pricing, and documentation? Visit the <a rel="noopener" target="_blank" href="https://www.syncfusion.com/spreadsheet-editor-sdk/blazor-spreadsheet-editor" aria-label="Navigate to the Blazor Spreadsheet Editor FT page">Blazor Spreadsheet Editor component</a> page.</p>
+</ActionDescription>
+
+<div class="col-lg-12 control-section">
+    <div class="content-wrapper">
+        <div class="row">
+            <div>
+                <SfSpreadsheet DataSource="DataSourceBytes" @ref=_spreadsheetInstance>
+                    <SpreadsheetRibbon></SpreadsheetRibbon>
+                </SfSpreadsheet>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+@*Hidden:Lines*@
+<style>
+    .e-spreadsheet-protection-dialog label,
+    .e-spreadsheet-unprotect-dialog label,
+    .e-unprotectworkbook-dlg label,
+    .e-spreadsheet-name-manager-content label {
+        font-weight: normal !important;
+        margin-bottom: 0 !important;
+    }
+
+    .e-protectworkbook-dlg label {
+        font-weight: normal !important;
+    }
+</style>
+@*End:Hidden*@
+
+@code {
+
+    public byte[] DataSourceBytes { get; set; }
+    public SfSpreadsheet _spreadsheetInstance { get; set; }
+
+    protected override void OnInitialized()
+    {
+        @*Server:Block*@
+#if !(WASM)
+        //Sets the excel file path for initial loading.
+        string filePath = "wwwroot/data/spreadsheet/freezepane.xlsx";
+        DataSourceBytes = File.ReadAllBytes(filePath);
+#endif
+        @*End:Server*@
+
+        @*WebAssembly:Block*@
+#if (WASM)
+    //Sets the excel file path for initial loading.
+    string filePath = "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";
+     DataSourceBytes = Convert.FromBase64String(filePath);
+#endif
+        @*End:WebAssembly*@
+    }
+
+    @*Hidden:Lines*@
+    @*WebAssembly:Block*@
+#if (WASM)
+    protected override void OnAfterRender(bool firstRender)
+    {
+        if (firstRender)
+        {
+            _spreadsheetInstance.CustomFonts = CustomFonts;
+        }
+    }
+
+    public List<string> CustomFonts = new List<string>
+    {
+        "fonts/Arial.TTF",
+        "fonts/Calibri.TTF",
+        "fonts/Courier New.TTF",
+        "fonts/Georgia.TTF",
+        "fonts/Algerian.TTF",
+        "fonts/Cambria.TTF",
+        "fonts/Cambria Math.TTF",
+        "fonts/Candara.TTF",
+        "fonts/Impact.TTF",
+        "fonts/Segoe Print.TTF",
+        "fonts/Segoe UI.TTF",
+        "fonts/Segoe Script.TTF",
+        "fonts/Symbol.TTF",
+        "fonts/Times New Roman.TTF",
+        "fonts/Verdana.TTF",
+        "fonts/Wingdings.TTF"
+    };
+#endif
+    @*End:WebAssembly*@
+    @*End:Hidden*@
+}
